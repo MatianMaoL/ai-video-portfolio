@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 视频作品集</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #FAFBFC;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --accent: #2563EB;
+            --accent-light: #EFF6FF;
+            --card-bg: #FFFFFF;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --card-shadow-hover: 0 10px 25px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 80px 24px 40px;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 24px 48px;
+        }
+
+        .filter-btn {
+            background: var(--card-bg);
+            border: 1px solid #E5E7EB;
+            color: var(--text-secondary);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* Masonry layout */
+        .portfolio-container {
+            column-count: 3;
+            column-gap: 28px;
+            padding: 0 40px 80px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+            .portfolio-container {
+                column-count: 2;
+                column-gap: 20px;
+                padding: 0 24px 60px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 56px 20px 28px;
+            }
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .filters {
+                padding: 0 16px 32px;
+            }
+            .portfolio-container {
+                column-count: 1;
+                column-gap: 0;
+                padding: 0 16px 48px;
+            }
+        }
+
+        /* Card */
+        .video-card {
+            break-inside: avoid;
+            margin-bottom: 28px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .video-card {
+                margin-bottom: 20px;
+            }
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background-color: #F3F4F6;
+        }
+
+        /* Fullscreen styles */
+        .video-wrapper:fullscreen,
+        .video-wrapper:-webkit-full-screen {
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-wrapper:fullscreen video,
+        .video-wrapper:-webkit-full-screen video {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+
+        .video-wrapper:fullscreen .fullscreen-btn,
+        .video-wrapper:-webkit-full-screen .fullscreen-btn {
+            opacity: 1;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            bottom: auto;
+            width: 44px;
+            height: 44px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 50%;
+            z-index: 200;
+        }
+        .video-wrapper:fullscreen .fullscreen-btn:hover,
+        .video-wrapper:-webkit-full-screen .fullscreen-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .click-catcher {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80%;
+            z-index: 5;
+            cursor: pointer;
+        }
+        .video-wrapper:fullscreen .click-catcher,
+        .video-wrapper:-webkit-full-screen .click-catcher {
+            display: block;
+            position: fixed;
+            height: 80vh;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .play-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 52px;
+            height: 52px;
+            background-color: rgba(255,255,255,0.85);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .video-card:hover .play-indicator {
+            opacity: 1;
+        }
+
+        .video-card.playing .play-indicator {
+            opacity: 0;
+        }
+
+        .play-indicator::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 10px 0 10px 16px;
+            border-color: transparent transparent transparent var(--text-primary);
+            margin-left: 3px;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background-color: rgba(0, 0, 0, 0.35);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+            z-index: 10;
+        }
+
+        .video-card:hover .fullscreen-btn {
+            opacity: 1;
+        }
+
+        .fullscreen-btn:hover {
+            background-color: rgba(0, 0, 0, 0.65);
+        }
+
+        /* Card Content */
+        .card-content {
+            padding: 18px 20px 20px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: var(--accent-light);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 0 24px 40px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AI 视频作品集</h1>
+        <p>精选 AI 创意视频，点击即可播放</p>
+    </header>
+
+    <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all">全部</button>
+    </div>
+
+    <div class="portfolio-container" id="portfolio-grid"></div>
+
+    <footer>Powered by Feishu Bitable & GitHub Pages</footer>
+
+    <script>
+        let videoData = [];
+        let activeVideo = null;
+
+        async function init() {
+            try {
+                const response = await fetch('./api/videos.json');
+                if (!response.ok) throw new Error('Videos data not available');
+                videoData = await response.json();
+
+                videoData.sort((a, b) => (a['序号'] || 0) - (b['序号'] || 0));
+
+                const categories = new Set();
+                videoData.forEach(item => {
+                    const types = item['类型'];
+                    if (types) {
+                        if (Array.isArray(types)) {
+                            types.forEach(cat => categories.add(cat));
+                        } else if (typeof types === 'string') {
+                            categories.add(types);
+                        } else if (typeof types === 'object' && types.text) {
+                            categories.add(types.text);
+                        }
+                    }
+                });
+
+                renderFilters(Array.from(categories));
+                renderGallery(videoData);
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                const grid = document.getElementById('portfolio-grid');
+                grid.innerHTML = '<div class="empty-state">等待同步数据中... 请确保 GitHub Actions 或本地 refresh 脚本运行一次。</div>';
+            }
+        }
+
+        function extractTag(itemField) {
+            if (Array.isArray(itemField)) {
+                return itemField.map(t => typeof t === 'object' ? t.text : t);
+            } else if (typeof itemField === 'string' && itemField.trim()) {
+                return [itemField.trim()];
+            } else if (typeof itemField === 'object' && itemField !== null && itemField.text) {
+                return [itemField.text];
+            }
+            return [];
+        }
+
+        function renderFilters(categories) {
+            const container = document.getElementById('filters');
+            container.innerHTML = '<button class="filter-btn active" data-filter="all">全部</button>';
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.filter = cat;
+                btn.textContent = cat;
+                container.appendChild(btn);
+            });
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    filterGallery(e.target.dataset.filter);
+                });
+            });
+        }
+
+        function filterGallery(category) {
+            if (category === 'all') {
+                renderGallery(videoData);
+                return;
+            }
+            const filtered = videoData.filter(item => {
+                return extractTag(item['类型']).includes(category);
+            });
+            renderGallery(filtered);
+        }
+
+        function renderGallery(items) {
+            const grid = document.getElementById('portfolio-grid');
+            grid.innerHTML = '';
+
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="empty-state">暂无该类型的作品</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+
+                const titleText = extractTag(item['内容'])[0] || item['内容'] || 'Untitled';
+                const types = extractTag(item['类型']);
+                const tagsHtml = types.map(t => `<span class="tag">${t}</span>`).join(' ');
+
+                card.innerHTML = `
+                    <div class="video-wrapper">
+                        <video loop playsinline controlsList="nodownload" preload="metadata"></video>
+                        <div class="click-catcher"></div>
+                        <div class="play-indicator"></div>
+                        <button class="fullscreen-btn" aria-label="全屏播放" title="全屏观看">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">${titleText}</h3>
+                        <div>${tagsHtml}</div>
+                    </div>
+                `;
+
+                const video = card.querySelector('video');
+                const fsBtn = card.querySelector('.fullscreen-btn');
+
+                if (item['URL']) {
+                    video.src = item['URL'] + '#t=0.001';
+                }
+
+                video.addEventListener('play', () => {
+                    if (activeVideo && activeVideo !== video) {
+                        activeVideo.pause();
+                    }
+                    card.classList.add('playing');
+                    activeVideo = video;
+                });
+
+                video.addEventListener('pause', () => {
+                    card.classList.remove('playing');
+                    if (activeVideo === video) {
+                        activeVideo = null;
+                    }
+                });
+
+                card.addEventListener('click', () => {
+                    if (!video.src) return;
+                    if (video.paused) {
+                        video.play();
+                    } else {
+                        video.pause();
+                    }
+                });
+
+                const catcher = card.querySelector('.click-catcher');
+                catcher.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!video.src) return;
+                    if (video.paused) {
+                        video.play();
+                    } else {
+                        video.pause();
+                    }
+                });
+
+                fsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!video.src) return;
+
+                    const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+
+                    if (fsElement) {
+                        if (document.exitFullscreen) document.exitFullscreen();
+                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                        else if (document.msExitFullscreen) document.msExitFullscreen();
+                    } else {
+                        if (video.paused) video.play();
+                        const wrapper = card.querySelector('.video-wrapper');
+                        if (wrapper.requestFullscreen) wrapper.requestFullscreen();
+                        else if (wrapper.webkitRequestFullscreen) wrapper.webkitRequestFullscreen();
+                        else if (wrapper.msRequestFullscreen) wrapper.msRequestFullscreen();
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Fullscreen state change: toggle native controls
+        let _exitingNativeFs = false;
+
+        function handleFullscreenChange() {
+            const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+
+            document.querySelectorAll('video').forEach(v => v.removeAttribute('controls'));
+
+            if (fsElement && fsElement.tagName === 'VIDEO') {
+                _exitingNativeFs = true;
+                document.exitFullscreen();
+                return;
+            }
+
+            if (_exitingNativeFs && fsElement && fsElement.classList.contains('video-wrapper')) {
+                _exitingNativeFs = false;
+                document.exitFullscreen();
+                return;
+            }
+
+            _exitingNativeFs = false;
+
+            if (fsElement && fsElement.classList.contains('video-wrapper')) {
+                const video = fsElement.querySelector('video');
+                if (video) video.setAttribute('controls', 'true');
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
