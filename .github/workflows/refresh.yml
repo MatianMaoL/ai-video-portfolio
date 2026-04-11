@@ -1,4 +1,4 @@
-name: Auto Refresh Feishu Videos
+name: Refresh Videos
 
 # 所需 GitHub Secrets:
 #   LARK_APP_ID      - 飞书自建应用 App ID
