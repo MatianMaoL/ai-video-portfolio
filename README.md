@@ -1,5 +1,5 @@
 # AI 视频作品集
-
+原作者地址：https://github.com/fireshort/feishu-website
 基于飞书多维表格 + GitHub Pages 的自动化视频作品集网站。
 
 ## 功能
